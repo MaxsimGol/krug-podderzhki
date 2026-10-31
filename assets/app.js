@@ -39,23 +39,50 @@ letter?.addEventListener('input', () => {
   }
   updateMail();
 });
-async function copyText(text, status, fallback) {
+// Compatibility path for HTTP and browsers without the asynchronous Clipboard API.
+function copyWithSelection(text) {
+  if (typeof document.execCommand !== 'function') return false;
+  const activeElement = document.activeElement;
+  const helper = document.createElement('textarea');
+  helper.value = text;
+  helper.setAttribute('readonly', '');
+  helper.setAttribute('aria-hidden', 'true');
+  helper.style.cssText = 'position:fixed;left:-9999px;top:0;font-size:16px';
+  document.body.append(helper);
   try {
-    if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
-    await navigator.clipboard.writeText(text);
-    status.textContent = 'Скопировано. Можно вставить в свою почту.';
-  } catch {
+    helper.focus({ preventScroll: true });
+    helper.select();
+    return document.execCommand('copy') === true;
+  } finally {
+    helper.remove();
+    activeElement?.focus?.({ preventScroll: true });
+  }
+}
+async function copyText(text, status, fallback, successMessage = 'Скопировано. Можно вставить в свою почту.') {
+  let copied = false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    }
+  } catch {}
+  if (!copied) {
+    try { copied = copyWithSelection(text); } catch {}
+  }
+  if (copied) {
+    status.textContent = successMessage;
+  } else {
     status.textContent = 'Автоматическое копирование недоступно. Выделите текст и скопируйте вручную.';
     fallback?.focus();
     fallback?.select?.();
   }
 }
-document.querySelector('#copy-letter')?.addEventListener('click', () => copyText(letter.value, document.querySelector('#letter-status'), letter));
+document.querySelector('#copy-letter')?.addEventListener('click', () => copyText(letter.value, document.querySelector('#letter-status'), letter, 'Текст письма скопирован. Откройте свою почту, укажите адрес получателя и вставьте текст.'));
 document.querySelectorAll('[data-copy-email]').forEach(button => {
   button.addEventListener('click', async () => {
     let status = button.parentElement.querySelector('[role="status"]');
     if (!status) { status = document.createElement('p'); status.setAttribute('role', 'status'); button.after(status); }
-    await copyText(button.dataset.copyEmail, status);
+    await copyText(button.dataset.copyEmail, status, null, 'Адрес скопирован. Вставьте его в поле «Кому» в своей почте.');
   });
 });
 document.querySelectorAll('[data-print]').forEach(button => button.addEventListener('click', () => window.print()));
