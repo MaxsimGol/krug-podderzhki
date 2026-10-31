@@ -9,13 +9,17 @@ cardButton?.addEventListener('click', () => {
   document.querySelector('#card-announcement').textContent = skip ? 'Красная сторона: пропускаю очередь. Объяснять причину не нужно.' : 'Зелёная сторона: готовность говорить. Можно передумать.';
 });
 const nameInput = document.querySelector('#participant-name');
+const nameHint = document.querySelector('#name-hint');
 const letter = document.querySelector('#letter');
 const sendLink = document.querySelector('#send-letter');
 let previousNameLine = '';
+let nameEditedInLetter = false;
+letter?.removeAttribute('readonly');
 const updateMail = () => {
   if (sendLink) sendLink.href = 'mailto:' + sendLink.dataset.email + '?subject=' + encodeURIComponent('Круг поддержки — участие') + '&body=' + encodeURIComponent(letter.value);
 };
 nameInput?.addEventListener('input', () => {
+  if (nameEditedInLetter) return;
   const name = nameInput.value.trim().replace(/[\r\n]/g, ' ');
   let text = letter.value;
   if (previousNameLine && text.includes(previousNameLine)) text = text.replace(previousNameLine, '');
@@ -27,7 +31,14 @@ nameInput?.addEventListener('input', () => {
   letter.value = text;
   updateMail();
 });
-letter?.addEventListener('input', updateMail);
+letter?.addEventListener('input', () => {
+  if (previousNameLine && !letter.value.includes(previousNameLine)) {
+    nameEditedInLetter = true;
+    if (nameInput) nameInput.readOnly = true;
+    if (nameHint) nameHint.textContent = 'Вы изменили строку с именем. Теперь редактируйте имя прямо в письме; поле выше больше не меняет текст.';
+  }
+  updateMail();
+});
 async function copyText(text, status, fallback) {
   try {
     if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
