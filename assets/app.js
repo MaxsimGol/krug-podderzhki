@@ -5,8 +5,8 @@ cardButton?.addEventListener('click', () => {
   cardButton.setAttribute('aria-pressed', String(skip));
   document.querySelector('#speaking-card').classList.toggle('is-red', skip);
   document.querySelector('#card-title').innerHTML = skip ? 'Пропускаю<br>очередь' : 'Готов(а)<br>говорить';
-  document.querySelector('#card-description').textContent = skip ? 'Сейчас мне хочется послушать' : 'Можно дать мне слово';
-  document.querySelector('#card-announcement').textContent = skip ? 'Красная сторона: пропускаю очередь. Объяснять причину не нужно.' : 'Зелёная сторона: готовность говорить. Можно передумать.';
+  document.querySelector('#card-description').textContent = skip ? 'Сейчас мне хочется послушать' : 'Можно предложить мне слово';
+  document.querySelector('#card-announcement').textContent = skip ? 'Красная сторона: пропускаю очередь. Объяснять причину не нужно.' : 'Зелёная сторона: можно предложить мне слово. Можно передумать.';
 });
 const nameInput = document.querySelector('#participant-name');
 const nameHint = document.querySelector('#name-hint');
